@@ -1,5 +1,5 @@
 import streamlit as st
-from transformers import pipeline
+from transformers import BartForConditionalGeneration, BartTokenizer
 import os
 import difflib
 import base64
@@ -7,8 +7,13 @@ import fitz  # PyMuPDF for PDF processing
 from tempfile import NamedTemporaryFile
 
 # Load pre-trained models for NER and summarization
+from transformers import pipeline
+
 ner_pipeline = pipeline("ner", grouped_entities=True)
-summarization_pipeline = pipeline("summarization")
+
+# Load BART model and tokenizer for summarization
+summarization_model = BartForConditionalGeneration.from_pretrained("facebook/bart-large-cnn")
+summarization_tokenizer = BartTokenizer.from_pretrained("facebook/bart-large-cnn")
 
 # List of keywords to highlight with different colors
 keywords = {
@@ -46,10 +51,34 @@ def highlight_entities(text, entities):
     return text
 
 
+# Function to split text into chunks
+def split_text(text, max_length=1024):
+    sentences = text.split('. ')
+    current_chunk = []
+    current_length = 0
+    for sentence in sentences:
+        sentence_length = len(sentence.split(' '))
+        if current_length + sentence_length <= max_length:
+            current_chunk.append(sentence)
+            current_length += sentence_length
+        else:
+            yield ' '.join(current_chunk)
+            current_chunk = [sentence]
+            current_length = sentence_length
+    yield ' '.join(current_chunk)
+
+
 # Function to summarize the contract
 def summarize_contract(text):
-    summary = summarization_pipeline(text, max_length=50, min_length=25, do_sample=False)
-    return summary[0]['summary_text']
+    chunks = list(split_text(text))
+    summaries = []
+    for chunk in chunks:
+        inputs = summarization_tokenizer.encode("summarize: " + chunk, return_tensors="pt", max_length=1024,
+                                                truncation=True)
+        summary_ids = summarization_model.generate(inputs, max_length=150, min_length=40, length_penalty=2.0,
+                                                   num_beams=4, early_stopping=True)
+        summaries.append(summarization_tokenizer.decode(summary_ids[0], skip_special_tokens=True))
+    return ' '.join(summaries)
 
 
 # Function to compare two contracts and highlight differences
@@ -236,6 +265,8 @@ def main():
 
 
 if __name__ == "__main__":
+    main()
+
     main()
 
 
