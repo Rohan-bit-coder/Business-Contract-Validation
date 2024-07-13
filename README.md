@@ -68,6 +68,7 @@ Business-Contract-Validation/
 │   ├── contract_2.txt
 │   ├── contract_3.txt
 │   ├── contract_4.txt
-└── other_files/
+└── Demonstration
+
 
 
