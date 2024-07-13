@@ -50,7 +50,7 @@ This project is a Streamlit application for highlighting contracts and performin
 
 1. Run the Streamlit app:
     ```sh
-    streamlit run app.py
+    streamlit run contractapp.py
     ```
 
 2. Open your web browser and go to `http://localhost:8501` to access the application.
@@ -59,7 +59,7 @@ This project is a Streamlit application for highlighting contracts and performin
 
 ```plaintext
 Business-Contract-Validation/
-├── app.py
+├── contractapp.py
 ├── generate.py
 ├── requirements.txt
 ├── README.md
